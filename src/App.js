@@ -15,7 +15,7 @@ function App() {
           target="_blank"
           rel="noopener noreferrer"
         >
-          Learn React
+          This is our ECS deployment using pipeline.
         </a>
       </header>
     </div>
