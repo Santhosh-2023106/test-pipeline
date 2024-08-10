@@ -1,0 +1,27 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - echo "Pre-Build Phase - Preparing environment"
+      - COMMIT_ID=${CODEBUILD_RESOLVED_SOURCE_VERSION}
+      - TAG=$(echo $COMMIT_ID | cut -c 1-7)
+      - echo "Using TAG=$TAG"
+      - echo "Logging in to Amazon ECR.."
+      - aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin $REPOSITORY_URI
+  
+  build:
+    commands:
+      - echo "Build Phase - Building Docker image"
+      - docker build -t $REPOSITORY_URI:$TAG .
+      - echo "Build Phase - Pushing Docker image to ECR"
+      - docker push $REPOSITORY_URI:$TAG
+  
+  post_build:
+    commands:
+      - echo "Post-Build Phase - Deploying Docker image to ECS"
+      - echo "Updating ECS service with new image"
+      - aws ecs update-service --cluster $ECS_CLUSTER --service $ECS_SERVICE --force-new-deployment
+
+artifacts:
+  files: imagedefinitions.json
