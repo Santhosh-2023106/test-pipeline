@@ -14,14 +14,15 @@ phases:
     commands:
       - echo "Build Phase - Building Docker image"
       - docker build -t $REPOSITORY_URI:$TAG .
-      - echo "Build Phase - Pushing Docker image to ECR"
-      - docker push $REPOSITORY_URI:$TAG
+
   
   post_build:
     commands:
-      - echo "Post-Build Phase - Deploying Docker image to ECS"
-      - echo "Updating ECS service with new image"
-      - aws ecs update-service --cluster $ECS_CLUSTER --service $ECS_SERVICE --force-new-deployment
+      - echo "Build Phase - Pushing Docker image to ECR"
+      - docker push $REPOSITORY_URI:$TAG
+      - echo Writing image definitions file...
+      - printf '[{"name":"'$ECS_CONTAINER_NAME'","imageUri":"%s"}]' $REPOSITORY_URI:$TAG > imagedefinitions.json
+
 
 artifacts:
   files: imagedefinitions.json
